@@ -1,0 +1,83 @@
+class Q
+{
+	int n;
+	boolean valueSet=false;
+	synchronized int get()
+	{
+		if(!valueSet)
+		try
+		{
+			wait();
+		}
+		catch(InterruptedException e)
+		{
+			System.out.println("Interrupted Exception caught");
+		}
+		System.out.println("Got:"+n);
+		valueSet=false;
+		notify();
+		return n;
+	}
+	synchronized void put(int n)
+	{
+		if(valueSet)
+		try
+		{
+			wait();
+		}
+		catch(InterruptedException e)
+		{
+			System.out.println("Interrupted Exception caught");
+		}
+		this.n=n;
+		valueSet=true;
+		System.out.println("Put:"+n);
+		notify();
+	}
+}
+class Producer implements Runnable
+{
+	Q q;
+	int x=0;
+	Producer(Q q)
+	{
+		this.q=q;
+		new Thread(this,"Producer").start();
+	}
+	public void run()
+	{
+		int i=0;
+		while(x<10)
+		{
+			q.put(i++);
+			x++;
+		}
+	}
+}
+class Consumer implements Runnable
+{
+	Q q;
+	int x=0;
+	Consumer(Q q)
+	{
+		this.q=q;
+		new Thread(this,"Consumer").start();
+	}
+	public void run()
+	{
+		while(x<10)
+		{
+			q.get();
+			x++;
+		}
+	}
+}
+class ProdCons
+{
+	public static void main(String[] args)
+	{
+		Q q=new Q();
+		new Producer(q);
+		new Consumer(q);
+	}
+}
